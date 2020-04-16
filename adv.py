@@ -29,7 +29,43 @@ player = Player(world.starting_room)
 # traversal_path = ['n', 'n']
 traversal_path = []
 
+# Used when current room already visited to go back to previous room
+reverse = {
+    'n': 's',
+    's': 'n',
+    'e': 'w',
+    'w': 'e'
+}
 
+def traverse(starting_room, visited=None):
+    # Initial run
+    if visited == None:
+        visited = set()
+    # Create list path to return path followed
+    path = []
+    current = player.current_room
+
+    # Iterate through possible directions (exits from current room)
+    for choice in current.get_exits():
+        # Travel that way
+        player.travel(choice)
+        current = player.current_room
+        # If we've already visited this room, return to previous room
+        if current in visited:
+            player.travel(reverse[choice])
+        # Otherwise, add the room to visited and to path
+        else:
+            visited.add(current)
+            path.append(choice)
+            # Recursively call function again on this room and add to path
+            path = path + traverse(current, visited)
+            player.travel(reverse[choice])
+            path.append(reverse[choice])
+
+    return path
+
+        
+traversal_path = traverse(player.current_room)
 
 # TRAVERSAL TEST
 visited_rooms = set()
@@ -42,21 +78,23 @@ for move in traversal_path:
 
 if len(visited_rooms) == len(room_graph):
     print(f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited")
+    # print(f'{traversal_path}')
 else:
     print("TESTS FAILED: INCOMPLETE TRAVERSAL")
     print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
+    print(f'{traversal_path}')
 
 
 
 #######
 # UNCOMMENT TO WALK AROUND
 #######
-player.current_room.print_room_description(player)
-while True:
-    cmds = input("-> ").lower().split(" ")
-    if cmds[0] in ["n", "s", "e", "w"]:
-        player.travel(cmds[0], True)
-    elif cmds[0] == "q":
-        break
-    else:
-        print("I did not understand that command.")
+# player.current_room.print_room_description(player)
+# while True:
+#     cmds = input("-> ").lower().split(" ")
+#     if cmds[0] in ["n", "s", "e", "w"]:
+#         player.travel(cmds[0], True)
+#     elif cmds[0] == "q":
+#         break
+#     else:
+#         print("I did not understand that command.")

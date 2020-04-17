@@ -5,16 +5,29 @@ from world import World
 import random
 from ast import literal_eval
 
+class Stack():
+    def __init__(self):
+        self.stack = []
+    def push(self, value):
+        self.stack.append(value)
+    def pop(self):
+        if self.size() > 0:
+            return self.stack.pop()
+        else:
+            return None
+    def size(self):
+        return len(self.stack)
+
 # Load world
 world = World()
 
 
 # You may uncomment the smaller graphs for development and testing purposes.
 # map_file = "maps/test_line.txt"
-# map_file = "maps/test_cross.txt"
+map_file = "maps/test_cross.txt"
 # map_file = "maps/test_loop.txt"
 # map_file = "maps/test_loop_fork.txt"
-map_file = "maps/main_maze.txt"
+# map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
 room_graph=literal_eval(open(map_file, "r").read())
@@ -37,35 +50,91 @@ reverse = {
     'w': 'e'
 }
 
-def traverse(starting_room, visited=None):
-    # Initial run
-    if visited == None:
-        visited = set()
-    # Create list path to return path followed
-    path = []
-    current = player.current_room
+# # Depth first (basically travels down EVERY path and back)
+# def traverse(starting_room, visited=None):
+#     # Initial run
+#     if visited == None:
+#         visited = set()
+#     # Create list path to return path followed
+#     path = []
+#     current = player.current_room
 
-    # Iterate through possible directions (exits from current room)
-    for choice in current.get_exits():
-        # Travel that way
-        player.travel(choice)
-        current = player.current_room
-        # If we've already visited this room, return to previous room
-        if current in visited:
-            player.travel(reverse[choice])
-        # Otherwise, add the room to visited and to path
-        else:
-            visited.add(current)
-            path.append(choice)
-            # Recursively call function again on this room and add to path
-            path = path + traverse(current, visited)
-            player.travel(reverse[choice])
-            path.append(reverse[choice])
+#     # Iterate through possible directions (exits from current room)
+#     for choice in current.get_exits():
+#         # Travel that way
+#         player.travel(choice)
+#         current = player.current_room
+#         # If we've already visited this room, return to previous room
+#         if current in visited:
+#             player.travel(reverse[choice])
+#         # Otherwise, add the room to visited and to path
+#         else:
+#             visited.add(current)
+#             path.append(choice)
+#             # Recursively call function again on this room and add to path
+#             path = path + traverse(current, visited)
+#             player.travel(reverse[choice])
+#             path.append(reverse[choice])
 
-    return path
+#     return path
+
+# def traverse(starting_room, visited=None):
+#     if visited is None:
+#         visited = set()
+    
+#     s = Stack()
+#     options = starting_room.get_exits()
+#     current_room = starting_room
+#     path = []
+#     for i in options:
+#         s.push(i)
+#     # iterate through queue
+#     while s.size() > 0:
+#         direction = s.pop()
+#         print(direction)
+#         path.append(direction)
+#         current_room = current_room.get_room_in_direction(direction)
+#         print(current_room)
+#         if current_room not in visited:
+#             visited.add(current_room)
+#             for directions in current_room.get_exits():
+#                 s.push(directions)
+#     return path
+
+# Create a stack
+stack = []
+visited = set()
+possible_directions = {}
+traversal_path = []
+stack.append(player.current_room)
+# visited.add(player.current_room)
+
+
+while len(stack) > 0:
+    v = stack.pop()
+    print(v.id)
+    if v.id not in possible_directions:
+        possible_directions[v.id] = v.get_exits()
+    # if possible_directions[v.id] is None:
+    #     exits = v.get_exits()
+    #     possible_directions[v.id] = exits
+    # else:
+    #     exits = possible_directions[v.id]  
+    print(possible_directions[v.id])
+    # print(stack)      
+    for i in possible_directions[v.id]:
+        traversal_path.append(i)
+        room = v.get_room_in_direction(i)
+        possible_directions[v.id].remove(i)
+        if room not in visited:
+            stack.append(room)
+            visited.add(room)
+
+
+
 
         
-traversal_path = traverse(player.current_room)
+# traversal_path = traverse(player.current_room)
 
 # TRAVERSAL TEST
 visited_rooms = set()
@@ -78,7 +147,7 @@ for move in traversal_path:
 
 if len(visited_rooms) == len(room_graph):
     print(f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited")
-    # print(f'{traversal_path}')
+    print(f'{traversal_path}')
 else:
     print("TESTS FAILED: INCOMPLETE TRAVERSAL")
     print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")

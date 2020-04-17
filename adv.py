@@ -24,9 +24,9 @@ world = World()
 
 # You may uncomment the smaller graphs for development and testing purposes.
 # map_file = "maps/test_line.txt"
-map_file = "maps/test_cross.txt"
+# map_file = "maps/test_cross.txt"
 # map_file = "maps/test_loop.txt"
-# map_file = "maps/test_loop_fork.txt"
+map_file = "maps/test_loop_fork.txt"
 # map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
@@ -103,6 +103,7 @@ reverse = {
 
 # Create a stack
 stack = []
+direction = []
 visited = set()
 possible_directions = {}
 traversal_path = []
@@ -110,8 +111,14 @@ stack.append(player.current_room)
 # visited.add(player.current_room)
 
 
-while len(stack) > 0:
+while len(visited) != len(room_graph):
     v = stack.pop()
+    if direction:
+        direct = direction.pop()
+        traversal_path.append(direct)
+        prev_room = v.get_room_in_direction(reverse[direct])
+        if possible_directions[prev_room.id]:
+            possible_directions[prev_room.id].remove(direct)
     print(v.id)
     if v.id not in possible_directions:
         possible_directions[v.id] = v.get_exits()
@@ -121,16 +128,34 @@ while len(stack) > 0:
     # else:
     #     exits = possible_directions[v.id]  
     print(possible_directions[v.id])
-    # print(stack)      
+         
     for i in possible_directions[v.id]:
-        traversal_path.append(i)
         room = v.get_room_in_direction(i)
-        possible_directions[v.id].remove(i)
         if room not in visited:
             stack.append(room)
+            direction.append(i)
             visited.add(room)
+        else:
+            if v.get_room_in_direction(i) == prev_room:
+                if len(possible_directions[v.id]) == 1:
+                    stack.append(room)
+                    direction.append(i)
+                else:
+                    for j in possible_directions[v.id][:-1]:
+                        room = v.get_room_in_direction(j)
+                        stack.append(room)
+                        direction.append(j)
+            else:
+                if len(possible_directions[v.id]) == 2:
+                    x = possible_directions[v.id][0]
+                    room = v.get_room_in_direction(x)
+                    stack.append(room)
+                    direction.append(x)
+                else:
+                    stack.append(room)
+                    direction.append(i)
 
-
+traversal_path.append(direction.pop())
 
 
         
